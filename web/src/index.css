@@ -1,0 +1,19 @@
+html, body, #root {
+  margin: 0;
+  height: 100%;
+}
+
+.banner {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1000;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font: 14px sans-serif;
+  color: white;
+  background: #555;
+}
+.banner.connected { background: #16a34a; }
+.banner.reconnecting { background: #d97706; }
+.banner.offline { background: #dc2626; }
