@@ -56,6 +56,10 @@
             "Confluent.Kafka": {
               "target": "Package",
               "version": "[2.16.0, )"
+            },
+            "StackExchange.Redis": {
+              "target": "Package",
+              "version": "[3.4.31, )"
             }
           },
           "imports": [

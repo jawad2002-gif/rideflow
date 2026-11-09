@@ -1,11 +1,18 @@
 {
   "version": 2,
-  "dgSpecHash": "xzGxEbvOsOI=",
+  "dgSpecHash": "+cgrQfsJ7y4=",
   "success": true,
   "projectFilePath": "C:\\Projects\\rideflow\\src\\Services\\Realtime\\RideFlow.Realtime.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\jawad\\.nuget\\packages\\confluent.kafka\\2.16.0\\confluent.kafka.2.16.0.nupkg.sha512",
-    "C:\\Users\\jawad\\.nuget\\packages\\librdkafka.redist\\2.16.0\\librdkafka.redist.2.16.0.nupkg.sha512"
+    "C:\\Users\\jawad\\.nuget\\packages\\librdkafka.redist\\2.16.0\\librdkafka.redist.2.16.0.nupkg.sha512",
+    "C:\\Users\\jawad\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\10.0.13\\microsoft.extensions.dependencyinjection.abstractions.10.0.13.nupkg.sha512",
+    "C:\\Users\\jawad\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\10.0.13\\microsoft.extensions.logging.abstractions.10.0.13.nupkg.sha512",
+    "C:\\Users\\jawad\\.nuget\\packages\\respite\\3.4.31\\respite.3.4.31.nupkg.sha512",
+    "C:\\Users\\jawad\\.nuget\\packages\\stackexchange.redis\\3.4.31\\stackexchange.redis.3.4.31.nupkg.sha512",
+    "C:\\Users\\jawad\\.nuget\\packages\\system.diagnostics.diagnosticsource\\10.0.13\\system.diagnostics.diagnosticsource.10.0.13.nupkg.sha512",
+    "C:\\Users\\jawad\\.nuget\\packages\\system.io.hashing\\10.0.13\\system.io.hashing.10.0.13.nupkg.sha512",
+    "C:\\Users\\jawad\\.nuget\\packages\\system.io.pipelines\\10.0.13\\system.io.pipelines.10.0.13.nupkg.sha512"
   ],
   "logs": []
 }

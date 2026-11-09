@@ -4,6 +4,9 @@
   <Folder Name="/src/Services/Realtime/">
     <Project Path="src/Services/Realtime/RideFlow.Realtime.csproj" />
   </Folder>
+  <Folder Name="/src/Services/Trip/">
+    <Project Path="src/Services/Trip/RideFlow.TripService.csproj" />
+  </Folder>
   <Folder Name="/src/Simulator/">
     <Project Path="src/Simulator/RideFlow.Simulator.csproj" />
   </Folder>

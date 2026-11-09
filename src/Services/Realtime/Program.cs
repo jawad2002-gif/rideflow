@@ -1,8 +1,12 @@
 using RideFlow.Realtime;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSignalR();
+builder.Services.AddSingleton<IConnectionMultiplexer>(
+    ConnectionMultiplexer.Connect("localhost:6379"));
+builder.Services.AddSingleton<GeoIndexer>();
 builder.Services.AddHostedService<LocationConsumer>();
 builder.Services.AddCors(o => o.AddDefaultPolicy(p => p
     .WithOrigins("http://localhost:5173")

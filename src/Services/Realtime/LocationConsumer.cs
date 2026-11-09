@@ -6,15 +6,17 @@ namespace RideFlow.Realtime;
 
 public class LocationConsumer : BackgroundService
 {
-    private readonly IHubContext<RideHub> _hub;
-    private readonly ILogger<LocationConsumer> _logger;
 
-    public LocationConsumer(IHubContext<RideHub> hub, ILogger<LocationConsumer> logger)
-    {
-        _hub = hub;
-        _logger = logger;
-    }
+   private readonly IHubContext<RideHub> _hub;
+private readonly GeoIndexer _geo;
+private readonly ILogger<LocationConsumer> _logger;
 
+public LocationConsumer(IHubContext<RideHub> hub, GeoIndexer geo, ILogger<LocationConsumer> logger)
+{
+    _hub = hub;
+    _geo = geo;
+    _logger = logger;
+}
     protected override Task ExecuteAsync(CancellationToken ct) =>
         Task.Run(() => Consume(ct), ct);
 
@@ -44,6 +46,9 @@ public class LocationConsumer : BackgroundService
                 var data = doc.RootElement.GetProperty("data");
 
                 var driverId = data.GetProperty("driverId").GetString()!;
+                await _geo.UpdateAsync(driverId,
+    data.GetProperty("lat").GetDouble(),
+    data.GetProperty("lng").GetDouble());
                 var now = DateTime.UtcNow;
                 if (lastSent.TryGetValue(driverId, out var t) && (now - t).TotalSeconds < 1)
                 {
