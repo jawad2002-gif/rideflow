@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, CircleMarker, Tooltip } from "react-leaflet";
+import { MapContainer, TileLayer } from "react-leaflet";
 import * as signalR from "@microsoft/signalr";
 import "leaflet/dist/leaflet.css";
+import AnimatedMarker from "./AnimatedMarker";
 
 type Driver = {
   driverId: string;
@@ -58,16 +59,13 @@ export default function App() {
           url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {list.map((d) => (
-          <CircleMarker
+          <AnimatedMarker
             key={d.driverId}
-            center={[d.lat, d.lng]}
-            radius={7}
-            pathOptions={{ color: "#1d4ed8", fillColor: "#3b82f6", fillOpacity: 0.9 }}
-          >
-            <Tooltip>
-              {d.driverId} · {d.speed} m/s
-            </Tooltip>
-          </CircleMarker>
+            id={d.driverId}
+            lat={d.lat}
+            lng={d.lng}
+            speed={d.speed}
+          />
         ))}
       </MapContainer>
     </div>
