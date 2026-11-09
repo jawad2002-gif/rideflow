@@ -1,6 +1,9 @@
 <Solution>
   <Folder Name="/src/" />
   <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/Matching/">
+    <Project Path="src/Services/Matching/RideFlow.Matching.csproj" />
+  </Folder>
   <Folder Name="/src/Services/Realtime/">
     <Project Path="src/Services/Realtime/RideFlow.Realtime.csproj" />
   </Folder>
