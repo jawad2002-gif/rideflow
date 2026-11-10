@@ -1,0 +1,83 @@
+import { useEffect, useState } from "react";
+import * as signalR from "@microsoft/signalr";
+
+type Offer = {
+  tripId: string;
+  driverId: string;
+  pickupLat: number;
+  pickupLng: number;
+  expiresAt: string;
+};
+
+export default function DriverApp() {
+  const [driverId, setDriverId] = useState("all");
+  const [active, setActive] = useState("");
+  const [offer, setOffer] = useState<Offer | null>(null);
+  const [secondsLeft, setSecondsLeft] = useState(0);
+  const [log, setLog] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!active) return;
+
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl(`http://localhost:5002/hubs/ride?driverId=${active}`)
+      .withAutomaticReconnect()
+      .build();
+
+    connection.on("RideOffered", (o: Offer) => setOffer(o));
+    connection.start().then(() => setLog((l) => [`Online as ${active}`, ...l]));
+
+    return () => {
+      connection.stop();
+    };
+  }, [active]);
+
+  useEffect(() => {
+    if (!offer) return;
+    const timer = setInterval(() => {
+      const left = Math.ceil((new Date(offer.expiresAt + "Z").getTime() - Date.now()) / 1000);
+      if (left <= 0) {
+        setOffer(null);
+        setLog((l) => ["Offer expired", ...l]);
+      } else {
+        setSecondsLeft(left);
+      }
+    }, 250);
+    return () => clearInterval(timer);
+  }, [offer]);
+
+  const respond = async (accepted: boolean) => {
+    if (!offer) return;
+    if (accepted) {
+      await fetch(`http://localhost:5004/offers/${offer.tripId}/accept`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ driverId: offer.driverId }),
+      });
+      setLog((l) => [`Accepted trip ${offer.tripId.slice(0, 8)}`, ...l]);
+    } else {
+      setLog((l) => ["Declined", ...l]);
+    }
+    setOffer(null);
+  };
+
+  return (
+    <div style={{ fontFamily: "sans-serif", padding: 24, maxWidth: 420 }}>
+      <h2>Driver app</h2>
+      <input value={driverId} onChange={(e) => setDriverId(e.target.value)} />{" "}
+      <button onClick={() => setActive(driverId)}>Go online</button>
+
+      {offer && (
+        <div style={{ marginTop: 24, padding: 16, border: "2px solid #16a34a", borderRadius: 8 }}>
+          <h3>New ride offer</h3>
+          <p>Pickup: {offer.pickupLat}, {offer.pickupLng}</p>
+          <p style={{ fontSize: 32 }}>{secondsLeft}s</p>
+          <button onClick={() => respond(true)}>Accept</button>{" "}
+          <button onClick={() => respond(false)}>Decline</button>
+        </div>
+      )}
+
+      <ul>{log.map((l, i) => <li key={i}>{l}</li>)}</ul>
+    </div>
+  );
+}

@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<TripDbContext>(o => o.UseNpgsql(
     "Host=localhost;Port=5432;Database=trips;Username=rideflow;Password=rideflow"));
 builder.Services.AddHostedService<OutboxPublisher>();
+builder.Services.AddHostedService<MatchedConsumer>();
 builder.Services.ConfigureHttpJsonOptions(o =>
     o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddCors(o => o.AddDefaultPolicy(p => p
