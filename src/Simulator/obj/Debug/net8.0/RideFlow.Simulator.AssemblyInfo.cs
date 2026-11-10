@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RideFlow.Simulator")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+255aa3071527e368d0ea9e10edb46b11baebbbb4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+660bb1f3d73f03ee1cd8437e94db03ec26476bc0")]
 [assembly: System.Reflection.AssemblyProductAttribute("RideFlow.Simulator")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RideFlow.Simulator")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
