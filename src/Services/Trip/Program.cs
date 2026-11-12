@@ -31,7 +31,7 @@ app.MapPost("/trips", async (CreateTripRequest req, TripDbContext db) =>
 {
     // Placeholder fare until the Pricing service exists
     var km = Haversine(req.PickupLat, req.PickupLng, req.DropoffLat, req.DropoffLng);
-    var fare = Math.Max(4m, Math.Round(2.5m + 1.2m * (decimal)km, 2));
+    var fare = FareCalculator.Fare(km);
 
     var trip = new Trip
     {
@@ -147,3 +147,4 @@ static double Haversine(double lat1, double lng1, double lat2, double lng2)
 
 record CreateTripRequest(string RiderId, double PickupLat, double PickupLng,
                          double DropoffLat, double DropoffLng);
+

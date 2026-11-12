@@ -16,4 +16,7 @@
   <Folder Name="/src/Simulator/">
     <Project Path="src/Simulator/RideFlow.Simulator.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/RideFlow.Tests/RideFlow.Tests.csproj" />
+  </Folder>
 </Solution>
