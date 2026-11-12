@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RideFlow.Matching")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+660bb1f3d73f03ee1cd8437e94db03ec26476bc0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+08202bd162c78700ff094cb07696e9c615dcecf2")]
 [assembly: System.Reflection.AssemblyProductAttribute("RideFlow.Matching")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RideFlow.Matching")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

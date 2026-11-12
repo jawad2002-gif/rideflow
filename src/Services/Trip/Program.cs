@@ -9,6 +9,7 @@ builder.Services.AddDbContext<TripDbContext>(o => o.UseNpgsql(
     "Host=localhost;Port=5432;Database=trips;Username=rideflow;Password=rideflow"));
 builder.Services.AddHostedService<OutboxPublisher>();
 builder.Services.AddHostedService<MatchedConsumer>();
+builder.Services.AddHostedService<PaymentConsumer>();
 builder.Services.ConfigureHttpJsonOptions(o =>
     o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
