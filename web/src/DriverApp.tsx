@@ -61,9 +61,10 @@ export default function DriverApp() {
       });
       setTrip({ id: offer.tripId, status: "DriverAssigned" });
       setLog((l) => [`Accepted trip ${offer.tripId.slice(0, 8)}`, ...l]);
-    } else {
-      setLog((l) => ["Declined", ...l]);
-    }
+  } else {
+  await fetch(`http://localhost:5004/offers/${offer.tripId}/decline`, { method: "POST" });
+  setLog((l) => ["Declined", ...l]);
+}
     setOffer(null);
   };
 

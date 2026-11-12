@@ -69,7 +69,7 @@ export default function RiderApp() {
     connection.on("DriverLocationUpdated", (d: DriverPos) =>
       setDrivers((prev) => ({ ...prev, [d.driverId]: d }))
     );
-    connection.start().catch(() => setError("Live updates offline"));
+    connection.start().then(() => setError("")).catch(() => {});
     return () => {
       connection.stop();
     };
@@ -212,3 +212,4 @@ export default function RiderApp() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using RideFlow.TripService;
@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<TripDbContext>(o => o.UseNpgsql(
     "Host=localhost;Port=5432;Database=trips;Username=rideflow;Password=rideflow"));
 builder.Services.AddHostedService<OutboxPublisher>();
+builder.Services.AddHostedService<MatchFailedConsumer>();
 builder.Services.AddHostedService<MatchedConsumer>();
 builder.Services.AddHostedService<PaymentConsumer>();
 builder.Services.ConfigureHttpJsonOptions(o =>
