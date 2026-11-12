@@ -62,3 +62,4 @@ C:\Projects\rideflow\src\Services\Realtime\bin\Debug\net8.0\StackExchange.Redis.
 C:\Projects\rideflow\src\Services\Realtime\bin\Debug\net8.0\System.Diagnostics.DiagnosticSource.dll
 C:\Projects\rideflow\src\Services\Realtime\bin\Debug\net8.0\System.IO.Hashing.dll
 C:\Projects\rideflow\src\Services\Realtime\bin\Debug\net8.0\System.IO.Pipelines.dll
+C:\Projects\rideflow\src\Services\Realtime\obj\Debug\net8.0\RideFlow.Realtime.sourcelink.json

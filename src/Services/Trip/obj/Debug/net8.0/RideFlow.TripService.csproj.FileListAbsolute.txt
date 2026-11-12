@@ -66,3 +66,4 @@ C:\Projects\rideflow\src\Services\Trip\obj\Debug\net8.0\refint\RideFlow.TripServ
 C:\Projects\rideflow\src\Services\Trip\obj\Debug\net8.0\RideFlow.TripService.pdb
 C:\Projects\rideflow\src\Services\Trip\obj\Debug\net8.0\RideFlow.TripService.genruntimeconfig.cache
 C:\Projects\rideflow\src\Services\Trip\obj\Debug\net8.0\ref\RideFlow.TripService.dll
+C:\Projects\rideflow\src\Services\Trip\obj\Debug\net8.0\RideFlow.TripService.sourcelink.json

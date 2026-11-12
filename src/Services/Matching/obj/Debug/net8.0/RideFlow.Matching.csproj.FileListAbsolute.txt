@@ -80,3 +80,4 @@ C:\Projects\rideflow\src\Services\Matching\obj\Debug\net8.0\staticwebassets.buil
 C:\Projects\rideflow\src\Services\Matching\obj\Debug\net8.0\staticwebassets.development.json
 C:\Projects\rideflow\src\Services\Matching\obj\Debug\net8.0\staticwebassets.build.endpoints.json
 C:\Projects\rideflow\src\Services\Matching\obj\Debug\net8.0\swae.build.ex.cache
+C:\Projects\rideflow\src\Services\Matching\obj\Debug\net8.0\RideFlow.Matching.sourcelink.json
