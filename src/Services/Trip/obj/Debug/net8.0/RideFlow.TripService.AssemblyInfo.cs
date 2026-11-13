@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RideFlow.TripService")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ae0fc40b72faf61f3bd7adc10ad544582f4fae34")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f02d94d9ea68370568045d32ad4142c72ff08786")]
 [assembly: System.Reflection.AssemblyProductAttribute("RideFlow.TripService")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RideFlow.TripService")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

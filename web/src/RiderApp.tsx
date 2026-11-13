@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from "react";
+﻿import { freshToken } from "./auth";
+import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, CircleMarker, Tooltip, useMapEvents } from "react-leaflet";
 import type { LeafletMouseEvent } from "leaflet";
 import * as signalR from "@microsoft/signalr";
@@ -47,7 +48,7 @@ export default function RiderApp() {
 
   useEffect(() => {
     const c = new signalR.HubConnectionBuilder()
-      .withUrl("http://localhost:5002/hubs/ride")
+      .withUrl("http://localhost:5002/hubs/ride", { accessTokenFactory: async () => (await freshToken()) ?? "" })
       .withAutomaticReconnect()
       .build();
     c.on("DriverLocationUpdated", (d: DriverPos) =>
@@ -104,7 +105,7 @@ export default function RiderApp() {
     try {
       const res = await fetch("http://localhost:5003/trips", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${await freshToken()}` },
         body: JSON.stringify({
           riderId: "rider-web",
           pickupLat: pickup.lat,
@@ -200,4 +201,8 @@ export default function RiderApp() {
     </div>
   );
 }
+
+
+
+
 

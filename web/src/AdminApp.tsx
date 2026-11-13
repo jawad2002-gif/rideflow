@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from "react";
+﻿import { freshToken } from "./auth";
+import { useEffect, useState } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
 import { LineChart, Line, XAxis, YAxis, Tooltip as ChartTooltip, ResponsiveContainer } from "recharts";
 import * as signalR from "@microsoft/signalr";
@@ -47,7 +48,7 @@ export default function AdminApp() {
     metrics.start().then(() => setStatus("connected")).catch(() => {});
 
     const live = new signalR.HubConnectionBuilder()
-      .withUrl("http://localhost:5002/hubs/ride")
+      .withUrl("http://localhost:5002/hubs/ride", { accessTokenFactory: async () => (await freshToken()) ?? "" })
       .withAutomaticReconnect()
       .build();
     live.on("DriverLocationUpdated", (d: DriverPos) =>
@@ -101,3 +102,5 @@ export default function AdminApp() {
     </div>
   );
 }
+
+

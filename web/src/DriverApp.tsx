@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from "react";
+﻿import { freshToken } from "./auth";
+import { useEffect, useState } from "react";
 import * as signalR from "@microsoft/signalr";
 
 type Offer = {
@@ -23,7 +24,7 @@ export default function DriverApp() {
     if (!active) return;
 
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl(`http://localhost:5002/hubs/ride?driverId=${active}`)
+      .withUrl("http://localhost:5002/hubs/ride", { accessTokenFactory: async () => (await freshToken()) ?? "" })
       .withAutomaticReconnect()
       .build();
 
@@ -56,8 +57,8 @@ export default function DriverApp() {
     if (accepted) {
       await fetch(`http://localhost:5004/offers/${offer.tripId}/accept`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ driverId: offer.driverId }),
+        headers: { Authorization: `Bearer ${await freshToken()}` },
+        
       });
       setTrip({ id: offer.tripId, status: "DriverAssigned" });
       setLog((l) => [`Accepted trip ${offer.tripId.slice(0, 8)}`, ...l]);
@@ -127,3 +128,6 @@ export default function DriverApp() {
     </div>
   );
 }
+
+
+

@@ -1,3 +1,4 @@
+﻿import { freshToken } from "./auth";
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
 import * as signalR from "@microsoft/signalr";
@@ -20,7 +21,7 @@ export default function App() {
 
   useEffect(() => {
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl("http://localhost:5002/hubs/ride")
+      .withUrl("http://localhost:5002/hubs/ride", { accessTokenFactory: async () => (await freshToken()) ?? "" })
       .withAutomaticReconnect()
       .build();
 
@@ -47,7 +48,7 @@ export default function App() {
   return (
     <div style={{ height: "100%", position: "relative" }}>
       <div className={`banner ${status}`}>
-        {status} · {list.length} drivers
+        {status} Â· {list.length} drivers
       </div>
       <MapContainer
         center={[52.52, 13.405]}
@@ -71,3 +72,4 @@ export default function App() {
     </div>
   );
 }
+

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RideFlow.Realtime")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c6b81b0cc9d830fce48097b4cfb01ee6faaa5c8c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f02d94d9ea68370568045d32ad4142c72ff08786")]
 [assembly: System.Reflection.AssemblyProductAttribute("RideFlow.Realtime")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RideFlow.Realtime")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
