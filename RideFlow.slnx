@@ -4,6 +4,9 @@
   <Folder Name="/src/Services/Analytics/">
     <Project Path="src/Services/Analytics/RideFlow.Analytics.csproj" />
   </Folder>
+  <Folder Name="/src/Services/Auth/">
+    <Project Path="src/Services/Auth/RideFlow.Auth.csproj" />
+  </Folder>
   <Folder Name="/src/Services/Matching/">
     <Project Path="src/Services/Matching/RideFlow.Matching.csproj" />
   </Folder>
