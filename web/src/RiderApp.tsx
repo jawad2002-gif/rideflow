@@ -1,21 +1,16 @@
 ﻿import { useEffect, useState } from "react";
-import {
-  MapContainer,
-  TileLayer,
-  CircleMarker,
-  Tooltip,
-  useMapEvents,
-} from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, Tooltip, useMapEvents } from "react-leaflet";
+import type { LeafletMouseEvent } from "leaflet";
 import * as signalR from "@microsoft/signalr";
 import "leaflet/dist/leaflet.css";
 import AnimatedMarker from "./AnimatedMarker";
 
 type Point = { lat: number; lng: number };
-type TripView = { id: string; status: string; driverId: string | null; estimatedFare: number };
+type TripView = { id: string; status: string; driverId: string | null; estimatedFare: number; surge?: number };
 type DriverPos = { driverId: string; lat: number; lng: number; heading: number; speed: number };
+type Quote = { distanceKm: number; fare: number; surge: number };
 
 const TERMINAL = ["Paid", "PaymentFailed", "NoDriverFound", "CancelledByRider", "CancelledByDriver"];
-
 const LABELS: Record<string, string> = {
   Requested: "Looking for a driver...",
   Matching: "Looking for a driver...",
@@ -30,20 +25,9 @@ const LABELS: Record<string, string> = {
   CancelledByDriver: "Cancelled by driver",
 };
 
-function distanceKm(a: Point, b: Point) {
-  const R = 6371;
-  const rad = (d: number) => (d * Math.PI) / 180;
-  const dLat = rad(b.lat - a.lat);
-  const dLng = rad(b.lng - a.lng);
-  const h =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
-}
-
 function ClickHandler({ onPick }: { onPick: (p: Point) => void }) {
   useMapEvents({
-    click(e) {
+    click(e: LeafletMouseEvent) {
       onPick({ lat: e.latlng.lat, lng: e.latlng.lng });
     },
   });
@@ -53,6 +37,7 @@ function ClickHandler({ onPick }: { onPick: (p: Point) => void }) {
 export default function RiderApp() {
   const [pickup, setPickup] = useState<Point | null>(null);
   const [dropoff, setDropoff] = useState<Point | null>(null);
+  const [quote, setQuote] = useState<Quote | null>(null);
   const [trip, setTrip] = useState<TripView | null>(null);
   const [drivers, setDrivers] = useState<Record<string, DriverPos>>({});
   const [error, setError] = useState("");
@@ -60,22 +45,34 @@ export default function RiderApp() {
   const finished = trip ? TERMINAL.includes(trip.status) : false;
   const locked = trip !== null && !finished;
 
-  // live driver positions from SignalR
   useEffect(() => {
-    const connection = new signalR.HubConnectionBuilder()
+    const c = new signalR.HubConnectionBuilder()
       .withUrl("http://localhost:5002/hubs/ride")
       .withAutomaticReconnect()
       .build();
-    connection.on("DriverLocationUpdated", (d: DriverPos) =>
+    c.on("DriverLocationUpdated", (d: DriverPos) =>
       setDrivers((prev) => ({ ...prev, [d.driverId]: d }))
     );
-    connection.start().then(() => setError("")).catch(() => {});
+    c.start().catch(() => {});
     return () => {
-      connection.stop();
+      c.stop();
     };
   }, []);
 
-  // poll the trip status until it reaches a final state
+  // price quote (with surge) from the Pricing service
+  useEffect(() => {
+    if (!pickup || !dropoff) {
+      setQuote(null);
+      return;
+    }
+    fetch(
+      `http://localhost:5006/quote?pickupLat=${pickup.lat}&pickupLng=${pickup.lng}&dropoffLat=${dropoff.lat}&dropoffLng=${dropoff.lng}`
+    )
+      .then((r) => r.json())
+      .then(setQuote)
+      .catch(() => setQuote(null));
+  }, [pickup, dropoff]);
+
   useEffect(() => {
     if (!trip || finished) return;
     const timer = setInterval(async () => {
@@ -83,7 +80,7 @@ export default function RiderApp() {
         const res = await fetch(`http://localhost:5003/trips/${trip.id}`);
         if (res.ok) setTrip(await res.json());
       } catch {
-        /* ignore, retry on next tick */
+        /* retry next tick */
       }
     }, 1000);
     return () => clearInterval(timer);
@@ -91,17 +88,15 @@ export default function RiderApp() {
 
   const pick = (p: Point) => {
     if (locked) return;
-    if (!pickup || (pickup && dropoff)) {
+    if (!pickup || dropoff) {
       setPickup(p);
       setDropoff(null);
       setTrip(null);
     } else {
+      if (Math.abs(p.lat - pickup.lat) + Math.abs(p.lng - pickup.lng) < 0.003) return;
       setDropoff(p);
     }
   };
-
-  const km = pickup && dropoff ? distanceKm(pickup, dropoff) : 0;
-  const fare = pickup && dropoff ? Math.max(4, Math.round((2.5 + 1.2 * km) * 100) / 100) : 0;
 
   const request = async () => {
     if (!pickup || !dropoff) return;
@@ -120,7 +115,7 @@ export default function RiderApp() {
       });
       if (!res.ok) throw new Error(String(res.status));
       const created = await res.json();
-      setTrip({ id: created.id, status: created.status, driverId: null, estimatedFare: created.estimatedFare });
+      setTrip({ id: created.id, status: created.status, driverId: null, estimatedFare: created.estimatedFare, surge: created.surge });
     } catch {
       setError("Could not request the ride. Is the Trip service running?");
     }
@@ -138,46 +133,46 @@ export default function RiderApp() {
     ? []
     : Object.values(drivers);
 
+  const tooClose = quote !== null && quote.distanceKm < 0.1;
+
   return (
     <div style={{ height: "100%", position: "relative" }}>
-      <div
-        style={{
-          position: "absolute",
-          top: 12,
-          left: 56,
-          zIndex: 1000,
-          background: "white",
-          padding: 16,
-          borderRadius: 8,
-          width: 280,
-          fontFamily: "sans-serif",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
-        }}
-      >
+      <div style={{ position: "absolute", top: 12, left: 56, zIndex: 1000, background: "white", padding: 16, borderRadius: 8, width: 300, fontFamily: "sans-serif", boxShadow: "0 2px 8px rgba(0,0,0,0.25)" }}>
         <h3 style={{ margin: "0 0 8px" }}>Book a ride</h3>
 
         {!pickup && <p>Click the map to set your pickup.</p>}
-        {pickup && !dropoff && <p>Now click the map to set your drop-off.</p>}
+        {pickup && !dropoff && <p>Now click a different spot for your drop-off.</p>}
 
         {pickup && dropoff && !trip && (
           <>
-            <p>
-              Distance: {km.toFixed(2)} km
-              <br />
-              Estimated fare: <b>{fare.toFixed(2)}</b>
-            </p>
-            <button onClick={request}>Request ride</button>{" "}
+            {quote ? (
+              <p>
+                Distance: {quote.distanceKm.toFixed(2)} km
+                <br />
+                Estimated fare: <b>{quote.fare.toFixed(2)}</b>
+                {quote.surge > 1 && (
+                  <span style={{ background: "#f59e0b", color: "white", borderRadius: 4, padding: "1px 6px", marginLeft: 6 }}>
+                    {quote.surge}x surge
+                  </span>
+                )}
+              </p>
+            ) : (
+              <p style={{ color: "#dc2626" }}>Could not get a price. Is the Pricing service running (port 5006)?</p>
+            )}
+            {tooClose && <p style={{ color: "#dc2626" }}>Pickup and drop-off are the same spot. Click Clear and pick two spots further apart.</p>}
+            <button onClick={request} disabled={!quote}>Request ride</button>{" "}
             <button onClick={reset}>Clear</button>
           </>
         )}
 
         {trip && (
           <>
-            <p style={{ fontSize: 18, margin: "8px 0" }}>
-              <b>{LABELS[trip.status] ?? trip.status}</b>
-            </p>
+            <p style={{ fontSize: 18, margin: "8px 0" }}><b>{LABELS[trip.status] ?? trip.status}</b></p>
             {trip.driverId && <p>Driver: {trip.driverId}</p>}
-            <p>Fare: {trip.estimatedFare}</p>
+            <p>
+              Fare: {trip.estimatedFare}
+              {trip.surge && trip.surge > 1 ? ` (${trip.surge}x surge)` : ""}
+            </p>
             {finished && <button onClick={reset}>New ride</button>}
           </>
         )}
@@ -186,25 +181,18 @@ export default function RiderApp() {
       </div>
 
       <MapContainer center={[52.52, 13.405]} zoom={13} style={{ height: "100%", width: "100%" }}>
-        <TileLayer
-          attribution="&copy; OpenStreetMap contributors"
-          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        <TileLayer attribution="&copy; OpenStreetMap contributors" url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <ClickHandler onPick={pick} />
-
         {pickup && (
-          <CircleMarker center={[pickup.lat, pickup.lng]} radius={10}
-            pathOptions={{ color: "#15803d", fillColor: "#22c55e", fillOpacity: 1 }}>
+          <CircleMarker center={[pickup.lat, pickup.lng]} radius={10} pathOptions={{ color: "#15803d", fillColor: "#22c55e", fillOpacity: 1 }}>
             <Tooltip permanent>Pickup</Tooltip>
           </CircleMarker>
         )}
         {dropoff && (
-          <CircleMarker center={[dropoff.lat, dropoff.lng]} radius={10}
-            pathOptions={{ color: "#b91c1c", fillColor: "#ef4444", fillOpacity: 1 }}>
+          <CircleMarker center={[dropoff.lat, dropoff.lng]} radius={10} pathOptions={{ color: "#b91c1c", fillColor: "#ef4444", fillOpacity: 1 }}>
             <Tooltip permanent>Drop-off</Tooltip>
           </CircleMarker>
         )}
-
         {visibleDrivers.map((d) => (
           <AnimatedMarker key={d.driverId} id={d.driverId} lat={d.lat} lng={d.lng} speed={d.speed} />
         ))}

@@ -10,6 +10,9 @@
   <Folder Name="/src/Services/Payment/">
     <Project Path="src/Services/Payment/RideFlow.Payment.csproj" />
   </Folder>
+  <Folder Name="/src/Services/Pricing/">
+    <Project Path="src/Services/Pricing/RideFlow.Pricing.csproj" />
+  </Folder>
   <Folder Name="/src/Services/Realtime/">
     <Project Path="src/Services/Realtime/RideFlow.Realtime.csproj" />
   </Folder>

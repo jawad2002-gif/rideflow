@@ -1,4 +1,7 @@
-﻿using System.Text.Json;
+﻿
+using System.Globalization;
+using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using RideFlow.TripService;
@@ -7,31 +10,83 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<TripDbContext>(o => o.UseNpgsql(
     "Host=localhost;Port=5432;Database=trips;Username=rideflow;Password=rideflow"));
+
+builder.Services.AddHttpClient();
+
 builder.Services.AddHostedService<OutboxPublisher>();
 builder.Services.AddHostedService<MatchFailedConsumer>();
 builder.Services.AddHostedService<MatchedConsumer>();
 builder.Services.AddHostedService<PaymentConsumer>();
+
 builder.Services.ConfigureHttpJsonOptions(o =>
     o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 builder.Services.AddCors(o => o.AddDefaultPolicy(p => p
     .WithOrigins("http://localhost:5173")
-    .AllowAnyHeader().AllowAnyMethod()));
+    .AllowAnyHeader()
+    .AllowAnyMethod()));
 
 var app = builder.Build();
+
 app.UseCors();
 
-// For now the schema is created automatically. EF migrations come later.
+// Create database schema if it does not exist.
 using (var scope = app.Services.CreateScope())
-    scope.ServiceProvider.GetRequiredService<TripDbContext>().Database.EnsureCreated();
+{
+    scope.ServiceProvider
+        .GetRequiredService<TripDbContext>()
+        .Database.EnsureCreated();
+}
 
 app.MapGet("/health/live", () => Results.Ok("alive"));
 
-app.MapPost("/trips", async (CreateTripRequest req, TripDbContext db) =>
+// Create a trip using the actual Pricing Service quote.
+app.MapPost("/trips", async (
+    CreateTripRequest req,
+    TripDbContext db,
+    HttpClient http) =>
 {
-    // Placeholder fare until the Pricing service exists
-    var km = Haversine(req.PickupLat, req.PickupLng, req.DropoffLat, req.DropoffLng);
-    var fare = FareCalculator.Fare(km);
+    var quoteUrl =
+        "http://localhost:5006/quote" +
+        $"?pickupLat={req.PickupLat.ToString(CultureInfo.InvariantCulture)}" +
+        $"&pickupLng={req.PickupLng.ToString(CultureInfo.InvariantCulture)}" +
+        $"&dropoffLat={req.DropoffLat.ToString(CultureInfo.InvariantCulture)}" +
+        $"&dropoffLng={req.DropoffLng.ToString(CultureInfo.InvariantCulture)}";
+
+    PricingQuote? quote;
+
+    try
+    {
+        quote = await http.GetFromJsonAsync<PricingQuote>(quoteUrl);
+    }
+    catch (HttpRequestException)
+    {
+        return Results.Problem(
+            title: "Pricing Service unavailable",
+            detail: "Could not retrieve the fare from Pricing Service.",
+            statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+    catch (TaskCanceledException)
+    {
+        return Results.Problem(
+            title: "Pricing Service timeout",
+            detail: "Pricing Service did not respond in time.",
+            statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+    catch (JsonException)
+    {
+        return Results.Problem(
+            title: "Invalid pricing response",
+            detail: "Pricing Service returned an invalid quote.",
+            statusCode: StatusCodes.Status502BadGateway);
+    }
+
+    if (quote is null)
+    {
+        return Results.Problem(
+            title: "Empty pricing response",
+            statusCode: StatusCodes.Status502BadGateway);
+    }
 
     var trip = new Trip
     {
@@ -40,9 +95,10 @@ app.MapPost("/trips", async (CreateTripRequest req, TripDbContext db) =>
         PickupLng = req.PickupLng,
         DropoffLat = req.DropoffLat,
         DropoffLng = req.DropoffLng,
-        EstimatedFare = fare,
-        Surge = 1.0
+        EstimatedFare = quote.Fare,
+        Surge = quote.Surge
     };
+
     db.Trips.Add(trip);
 
     var envelope = new
@@ -70,18 +126,28 @@ app.MapPost("/trips", async (CreateTripRequest req, TripDbContext db) =>
         Payload = JsonSerializer.Serialize(envelope)
     });
 
-    // One SaveChanges = one transaction: the trip and its event are saved together or not at all
     await db.SaveChangesAsync();
 
     return Results.Created($"/trips/{trip.Id}", new
     {
-        trip.Id, trip.Status, trip.EstimatedFare, trip.Surge, distanceKm = Math.Round(km, 2)
+        trip.Id,
+        trip.Status,
+        trip.EstimatedFare,
+        trip.Surge,
+        distanceKm = quote.DistanceKm
     });
 });
 
 app.MapGet("/trips/{id:guid}", async (Guid id, TripDbContext db) =>
-    await db.Trips.FindAsync(id) is { } t ? Results.Ok(t) : Results.NotFound());
-static void AddEvent(TripDbContext db, string type, Trip trip, object extra)
+    await db.Trips.FindAsync(id) is { } t
+        ? Results.Ok(t)
+        : Results.NotFound());
+
+static void AddEvent(
+    TripDbContext db,
+    string type,
+    Trip trip,
+    object extra)
 {
     var envelope = new
     {
@@ -90,8 +156,15 @@ static void AddEvent(TripDbContext db, string type, Trip trip, object extra)
         version = 1,
         occurredAt = DateTime.UtcNow,
         correlationId = $"trip-{trip.Id}",
-        data = new { tripId = trip.Id, riderId = trip.RiderId, driverId = trip.DriverId, extra }
+        data = new
+        {
+            tripId = trip.Id,
+            riderId = trip.RiderId,
+            driverId = trip.DriverId,
+            extra
+        }
     };
+
     db.Outbox.Add(new OutboxMessage
     {
         Topic = type,
@@ -100,51 +173,103 @@ static void AddEvent(TripDbContext db, string type, Trip trip, object extra)
     });
 }
 
-app.MapPost("/trips/{id:guid}/arrived", async (Guid id, TripDbContext db) =>
+app.MapPost("/trips/{id:guid}/arrived", async (
+    Guid id,
+    TripDbContext db) =>
 {
     var trip = await db.Trips.FindAsync(id);
-    if (trip is null) return Results.NotFound();
-    try { trip.TransitionTo(TripStatus.DriverArrived); }
-    catch (InvalidOperationException e) { return Results.Conflict(e.Message); }
+
+    if (trip is null)
+        return Results.NotFound();
+
+    try
+    {
+        trip.TransitionTo(TripStatus.DriverArrived);
+    }
+    catch (InvalidOperationException e)
+    {
+        return Results.Conflict(e.Message);
+    }
+
     await db.SaveChangesAsync();
+
     return Results.Ok(new { trip.Id, trip.Status });
 });
 
-app.MapPost("/trips/{id:guid}/start", async (Guid id, TripDbContext db) =>
+app.MapPost("/trips/{id:guid}/start", async (
+    Guid id,
+    TripDbContext db) =>
 {
     var trip = await db.Trips.FindAsync(id);
-    if (trip is null) return Results.NotFound();
-    try { trip.TransitionTo(TripStatus.InProgress); }
-    catch (InvalidOperationException e) { return Results.Conflict(e.Message); }
+
+    if (trip is null)
+        return Results.NotFound();
+
+    try
+    {
+        trip.TransitionTo(TripStatus.InProgress);
+    }
+    catch (InvalidOperationException e)
+    {
+        return Results.Conflict(e.Message);
+    }
+
     AddEvent(db, "trip.started", trip, new { });
+
     await db.SaveChangesAsync();
+
     return Results.Ok(new { trip.Id, trip.Status });
 });
 
-app.MapPost("/trips/{id:guid}/complete", async (Guid id, TripDbContext db) =>
+app.MapPost("/trips/{id:guid}/complete", async (
+    Guid id,
+    TripDbContext db) =>
 {
     var trip = await db.Trips.FindAsync(id);
-    if (trip is null) return Results.NotFound();
-    try { trip.TransitionTo(TripStatus.Completed); }
-    catch (InvalidOperationException e) { return Results.Conflict(e.Message); }
-    AddEvent(db, "trip.completed", trip, new { fare = trip.EstimatedFare });
+
+    if (trip is null)
+        return Results.NotFound();
+
+    try
+    {
+        trip.TransitionTo(TripStatus.Completed);
+    }
+    catch (InvalidOperationException e)
+    {
+        return Results.Conflict(e.Message);
+    }
+
+    AddEvent(db, "trip.completed", trip, new
+    {
+        fare = trip.EstimatedFare
+    });
+
     await db.SaveChangesAsync();
-    return Results.Ok(new { trip.Id, trip.Status, fare = trip.EstimatedFare });
+
+    return Results.Ok(new
+    {
+        trip.Id,
+        trip.Status,
+        fare = trip.EstimatedFare
+    });
 });
+
 app.Run("http://localhost:5003");
 
-static double Haversine(double lat1, double lng1, double lat2, double lng2)
-{
-    const double R = 6371;
-    double ToRad(double d) => d * Math.PI / 180;
-    var dLat = ToRad(lat2 - lat1);
-    var dLng = ToRad(lng2 - lng1);
-    var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-            Math.Cos(ToRad(lat1)) * Math.Cos(ToRad(lat2)) *
-            Math.Sin(dLng / 2) * Math.Sin(dLng / 2);
-    return R * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-}
+// Matches the JSON returned by Pricing Service.
+record PricingQuote(
+    [property: JsonPropertyName("distanceKm")] double DistanceKm,
+    [property: JsonPropertyName("baseFare")] decimal BaseFare,
+    [property: JsonPropertyName("surge")] double Surge,
+    [property: JsonPropertyName("fare")] decimal Fare,
+    [property: JsonPropertyName("zone")] string Zone,
+    [property: JsonPropertyName("isSurgeActive")] bool IsSurgeActive
+);
 
-record CreateTripRequest(string RiderId, double PickupLat, double PickupLng,
-                         double DropoffLat, double DropoffLng);
-
+record CreateTripRequest(
+    string RiderId,
+    double PickupLat,
+    double PickupLng,
+    double DropoffLat,
+    double DropoffLng
+);

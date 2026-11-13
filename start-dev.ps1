@@ -5,3 +5,4 @@ foreach ($s in $svc) {
 }
 Start-Process powershell -ArgumentList "-NoExit","-Command","cd C:\Projects\rideflow\web; npm run dev"
 
+

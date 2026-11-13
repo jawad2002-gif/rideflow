@@ -182,3 +182,46 @@
     border-right-color: var(--border);
   }
 }
+.ride-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.surge-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffedd5;
+  color: #ea580c;
+  border: 1px solid #fdba74;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ride-fare-details {
+  margin-top: 15px;
+}
+
+.fare-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 8px 0;
+}
+
+.surge-row {
+  color: #ea580c;
+  font-weight: 600;
+}
+
+.estimated-fare {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 12px;
+  margin-top: 12px;
+  font-size: 18px;
+}
