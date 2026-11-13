@@ -1,21 +1,25 @@
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace RideFlow.Realtime;
 
+[Authorize]
 public class RideHub : Hub
 {
-    // Temporary: no auth yet, so the client says who it is. JWT replaces this later.
     public override async Task OnConnectedAsync()
     {
-        var query = Context.GetHttpContext()?.Request.Query;
-        var driverId = query?["driverId"].ToString();
+        var userId = Context.User?.FindFirst("sub")?.Value;
+        var role = Context.User?.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
 
-        if (driverId == "all")
-            await Groups.AddToGroupAsync(Context.ConnectionId, "debug-offers");
-        else if (!string.IsNullOrEmpty(driverId))
-            await Groups.AddToGroupAsync(Context.ConnectionId, $"user-{driverId}");
-        else
+        if (!string.IsNullOrEmpty(userId))
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"user-{userId}");
+
+        if (role == "Admin")
             await Groups.AddToGroupAsync(Context.ConnectionId, "admin");
+        if (role == "Driver")
+            await Groups.AddToGroupAsync(Context.ConnectionId, "drivers");
+        if (role is "Rider" or "Admin")
+            await Groups.AddToGroupAsync(Context.ConnectionId, "map"); // live car positions
 
         await base.OnConnectedAsync();
     }

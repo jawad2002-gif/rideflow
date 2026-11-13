@@ -81,3 +81,11 @@ C:\Projects\rideflow\src\Services\Matching\obj\Debug\net8.0\staticwebassets.deve
 C:\Projects\rideflow\src\Services\Matching\obj\Debug\net8.0\staticwebassets.build.endpoints.json
 C:\Projects\rideflow\src\Services\Matching\obj\Debug\net8.0\swae.build.ex.cache
 C:\Projects\rideflow\src\Services\Matching\obj\Debug\net8.0\RideFlow.Matching.sourcelink.json
+C:\Projects\rideflow\src\Services\Matching\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Projects\rideflow\src\Services\Matching\bin\Debug\net8.0\Microsoft.IdentityModel.Abstractions.dll
+C:\Projects\rideflow\src\Services\Matching\bin\Debug\net8.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\Projects\rideflow\src\Services\Matching\bin\Debug\net8.0\Microsoft.IdentityModel.Logging.dll
+C:\Projects\rideflow\src\Services\Matching\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.dll
+C:\Projects\rideflow\src\Services\Matching\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+C:\Projects\rideflow\src\Services\Matching\bin\Debug\net8.0\Microsoft.IdentityModel.Tokens.dll
+C:\Projects\rideflow\src\Services\Matching\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll

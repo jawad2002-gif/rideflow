@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Confluent.Kafka;
 using Microsoft.AspNetCore.SignalR;
 
@@ -52,7 +52,7 @@ public class OfferConsumer : BackgroundService
                     expiresAt = data.GetProperty("expiresAt").GetDateTime()
                 };
 
-                await _hub.Clients.Groups($"user-{driverId}", "debug-offers")
+                await _hub.Clients.Group($"user-{driverId}")
                     .SendAsync("RideOffered", payload, ct);
 
                 _logger.LogInformation("RideOffered pushed to {DriverId}", driverId);

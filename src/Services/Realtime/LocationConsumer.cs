@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Confluent.Kafka;
 using Microsoft.AspNetCore.SignalR;
 
@@ -57,7 +57,7 @@ public LocationConsumer(IHubContext<RideHub> hub, GeoIndexer geo, ILogger<Locati
                 }
                 lastSent[driverId] = now;
 
-                await _hub.Clients.Group("admin").SendAsync("DriverLocationUpdated", new
+                await _hub.Clients.Group("map").SendAsync("DriverLocationUpdated", new
                 {
                     driverId,
                     lat = data.GetProperty("lat").GetDouble(),

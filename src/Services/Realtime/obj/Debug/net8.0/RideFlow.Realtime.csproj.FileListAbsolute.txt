@@ -63,3 +63,11 @@ C:\Projects\rideflow\src\Services\Realtime\bin\Debug\net8.0\System.Diagnostics.D
 C:\Projects\rideflow\src\Services\Realtime\bin\Debug\net8.0\System.IO.Hashing.dll
 C:\Projects\rideflow\src\Services\Realtime\bin\Debug\net8.0\System.IO.Pipelines.dll
 C:\Projects\rideflow\src\Services\Realtime\obj\Debug\net8.0\RideFlow.Realtime.sourcelink.json
+C:\Projects\rideflow\src\Services\Realtime\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Projects\rideflow\src\Services\Realtime\bin\Debug\net8.0\Microsoft.IdentityModel.Abstractions.dll
+C:\Projects\rideflow\src\Services\Realtime\bin\Debug\net8.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\Projects\rideflow\src\Services\Realtime\bin\Debug\net8.0\Microsoft.IdentityModel.Logging.dll
+C:\Projects\rideflow\src\Services\Realtime\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.dll
+C:\Projects\rideflow\src\Services\Realtime\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+C:\Projects\rideflow\src\Services\Realtime\bin\Debug\net8.0\Microsoft.IdentityModel.Tokens.dll
+C:\Projects\rideflow\src\Services\Realtime\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll

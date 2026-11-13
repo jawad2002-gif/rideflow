@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Confluent.Kafka;
 
 namespace RideFlow.Simulator;
@@ -42,6 +42,10 @@ public class Worker : BackgroundService
             Speed = 8 + rnd.NextDouble() * 8 // m/s
         }).ToList();
 
+        var file = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "real-drivers.txt");
+        if (File.Exists(file))
+            foreach (var id in File.ReadAllLines(file).Where(l => l.Trim().Length > 0))
+                drivers.Add(new Driver { Id = id.Trim(), Lat = CenterLat, Lng = CenterLng, Heading = 0, Speed = 3 });
         _logger.LogInformation("Simulating {Count} drivers", drivers.Count);
 
         while (!ct.IsCancellationRequested)
