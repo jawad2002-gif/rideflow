@@ -4,3 +4,4 @@ node_modules/
 dist/
 .vs/
 .env
+src/Simulator/real-drivers.txt
